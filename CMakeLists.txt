@@ -3,4 +3,4 @@ project(HashTable)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(HashTable main.cpp hashtable.h hashtable.hpp passserver.cpp passserver.h)
+add_executable(HashTable proj5.cpp hashtable.h hashtable.hpp passserver.cpp passserver.h)

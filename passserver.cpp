@@ -5,7 +5,8 @@
 
 #include "passserver.h"
 #include "hashtable.h"
-#include "unistd.h"
+#include "sstream"
+
 
 
 using namespace std;
@@ -19,6 +20,8 @@ PassServer::PassServer(int size)  {
 bool PassServer::addUser(pair<string, string> &kv) {
     kv.second = encrypt(kv.second);
     return ht.insert(kv);
+
+
 }
 
 bool PassServer::addUser(pair<string, string> &&kv) {
@@ -48,6 +51,7 @@ bool PassServer::changePassword(const pair<string, string> &p, const string &new
         pTemp.second = temp;
         ht.insert(pTemp);
         return true;
+        //changes users password if applicable
     }
 }
 
@@ -68,6 +72,8 @@ int PassServer::size() {
 }
 
 string PassServer::encrypt(const string &str) {
+    //unable to use crypt.h file on my machine
+    //created my own encryption function
     int ascii = 0;
     string result = " ";
     char temp = ' ';
@@ -77,9 +83,10 @@ string PassServer::encrypt(const string &str) {
 
     }
     int num = (ascii + temp) % 12345;
-    result = to_string(num);
-//            to_string(ascii) + to_string(temp);
-    return result;
+    stringstream  ss;
+    ss << hex << num;
+    //make encoded value a hex
+    return result = "$1$" + ss.str() + "$";
 }
 
 PassServer::~PassServer() {

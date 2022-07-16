@@ -5,11 +5,12 @@
 #include <fstream>  // includes write/read of files
 #include "sstream"
 using namespace std;
+using namespace cop4530;
 // returns largest prime number <= n or zero if input is too large
 // This is likely to be more efficient than prime_above(), because
 // it only needs a vector of size n
 template <typename K, typename V>
-unsigned long cop4530::HashTable<K, V>::prime_below (unsigned long n)
+unsigned long HashTable<K, V>::prime_below (unsigned long n)
 {
   if (n > max_prime)
     {
@@ -41,7 +42,7 @@ unsigned long cop4530::HashTable<K, V>::prime_below (unsigned long n)
 
 //Sets all prime number indexes to 1. Called by method prime_below(n) 
 template <typename K, typename V>
-void cop4530::HashTable<K, V>::setPrimes(std::vector<unsigned long>& vprimes)
+void HashTable<K, V>::setPrimes(std::vector<unsigned long>& vprimes)
 {
   int i = 0;
   int j = 0;
@@ -62,17 +63,18 @@ void cop4530::HashTable<K, V>::setPrimes(std::vector<unsigned long>& vprimes)
 }
 
 template<typename K, typename V>
-int cop4530::HashTable<K, V>::MyHash(const K &k) {
+int HashTable<K, V>::MyHash(const K &k) {
     string temp = k;
     int kInt = 0;
     for (char i: temp) {
         kInt += i;
     }
     return kInt % tableSize;
+    //returns index to hashtable
 }
 
 template<typename K, typename V>
-cop4530::HashTable<K, V>::HashTable(int size) {
+HashTable<K, V>::HashTable(int size) {
     hashTable.resize(prime_below(size));
     tableSize = hashTable.size();
     entries = 0;
@@ -80,7 +82,7 @@ cop4530::HashTable<K, V>::HashTable(int size) {
 }
 
 template<typename K, typename V>
-bool cop4530::HashTable<K, V>::contains(const K &k) {
+bool HashTable<K, V>::contains(const K &k) {
     int hash = MyHash(k);
     if(hashTable[hash].empty()){
         cout << "key not contained" << endl;
@@ -92,6 +94,7 @@ bool cop4530::HashTable<K, V>::contains(const K &k) {
         for(; lItr != hashTable[hash].end(); lItr++){
             if(lItr->first == k){
                 cout << "key contained in table" << endl;
+                cout << "[KEY]:" << lItr->first << " [VALUE]:" << lItr->second << endl;
                 return true;
                 //add if list is not empty
             }
@@ -103,7 +106,7 @@ bool cop4530::HashTable<K, V>::contains(const K &k) {
 }
 
 template<typename K, typename V>
-bool cop4530::HashTable<K, V>::match(const pair<K, V> &kv) {
+bool HashTable<K, V>::match(const pair<K, V> &kv) {
     int hash = MyHash(kv.first);
     if(hashTable[hash].empty()){
         cout << "key value pair not contained" << endl;
@@ -124,7 +127,7 @@ bool cop4530::HashTable<K, V>::match(const pair<K, V> &kv) {
 }
 
 template<typename K, typename V>
-bool cop4530::HashTable<K, V>::insert(const pair<K, V> &kv) {
+bool HashTable<K, V>::insert(const pair<K, V> &kv) {
     if(entries > tableSize){
         rehash();
     }
@@ -158,9 +161,10 @@ bool cop4530::HashTable<K, V>::insert(const pair<K, V> &kv) {
 }
 
 template<typename K, typename V>
-bool cop4530::HashTable<K, V>::insert(const pair<K, V> &&kv) {
+bool HashTable<K, V>::insert(const pair<K, V> &&kv) {
     if(entries > tableSize){
         rehash();
+        //if table needs to be resized and rehashed
     }
     int hash = MyHash(kv.first);
     if(hashTable[hash].empty()){
@@ -191,9 +195,10 @@ bool cop4530::HashTable<K, V>::insert(const pair<K, V> &&kv) {
 }
 
 template<typename K, typename V>
-bool cop4530::HashTable<K, V>::remove(const K &k) {
+bool HashTable<K, V>::remove(const K &k) {
     int hash = MyHash(k);
     if(hashTable[hash].empty()){
+        cout << "Empty Hashtable, nothing to remove" << endl;
         return false;
         //nothing to remove
     }
@@ -203,20 +208,22 @@ bool cop4530::HashTable<K, V>::remove(const K &k) {
         if(lItr->first == k){
             hashTable[hash].erase(lItr);
             entries--;
+            cout << "Entry Removed" << endl;
             return true;
         }
     }
+    cout << "Nothing to remove" << endl;
     return false;
 }
 //move version of insert
 
 template<typename K, typename V>
-void cop4530::HashTable<K, V>::clear() {
+void HashTable<K, V>::clear() {
     makeEmpty();
 }
 
 template<typename K, typename V>
-bool cop4530::HashTable<K, V>::load(const char *filename) {
+bool HashTable<K, V>::load(const char *filename) {
     fstream myFile;
     char c; //holds output from file
     string temp = " ";
@@ -229,24 +236,6 @@ bool cop4530::HashTable<K, V>::load(const char *filename) {
         return false;
     }
     else{
-//        while(myFile.get(c)){
-//            if(c!= ' '){
-//                temp += c;
-//            }
-//            else{
-//                p.first = temp;
-//                break;
-//            }
-//        }
-//        while(myFile.get(c)){
-//            if(c != '\n'){
-//                temp += c;
-//            }
-//            else{
-//                p.second = temp;
-//                c++;
-//            }
-//        }
         while(getline(myFile, temp)){
             stringstream ss;
             ss << temp;
@@ -257,13 +246,14 @@ bool cop4530::HashTable<K, V>::load(const char *filename) {
                 p.second = temp2;
                 insert(p);
             }
+            //adds each key value pair to a pair variable and inserts it
         }
     }
     return true;
 }
 
 template<typename K, typename V>
-void cop4530::HashTable<K, V>::dump() const{
+void HashTable<K, V>::dump() const{
     kVPair temp;
     if(entries == 0){
         cout << "empty hash table" << endl;
@@ -272,22 +262,24 @@ void cop4530::HashTable<K, V>::dump() const{
     for(int i = 0; i < tableSize; i++){
         if(hashTable[i].size() < 1){
             continue;
+            //if hash table is empty continue
         }
         auto lItr = hashTable[i].begin();
         for(; lItr != hashTable[i].end(); lItr++){
             cout << i << ". [KEY]:" << lItr->first << " [VALUE]:" << lItr->second << "; ";
+            //print every entry
         }
         cout << endl;
     }
 }
 
 template<typename K, typename V>
-int cop4530::HashTable<K, V>::size() const{
+int HashTable<K, V>::size() const{
     return entries;
 }
 
 template<typename K, typename V>
-void cop4530::HashTable<K, V>::makeEmpty() {
+void HashTable<K, V>::makeEmpty() {
     for(int i = 0; i < tableSize; i++) {
         hashTable[i].clear();
         entries = 0;
@@ -295,12 +287,14 @@ void cop4530::HashTable<K, V>::makeEmpty() {
 }
 
 template<typename K, typename V>
-void cop4530::HashTable<K, V>::rehash() {
+void HashTable<K, V>::rehash() {
     cout << "[INFO] rehashing underway" << endl;
     vector<list<pair<K, V>>> temp = hashTable;
+    //save data of old hash table
     hashTable.clear();
     hashTable.resize(tableSize * 2);
     tableSize = hashTable.size();
+    //double size of hashtable
 
     pair<K, V> p;
 
@@ -310,6 +304,7 @@ void cop4530::HashTable<K, V>::rehash() {
             p.first = lItr->first;
             p.second = lItr->second;
             insert(p);
+            //re-insert data into larger table
 
             entries--;
             //resets off balance when using insert function
@@ -319,7 +314,7 @@ void cop4530::HashTable<K, V>::rehash() {
 }
 
 template<typename K, typename V>
-bool cop4530::HashTable<K, V>::write_to_file(const char *filename) {
+bool HashTable<K, V>::write_to_file(const char *filename) {
     ofstream MyFile(filename);
 
     kVPair temp;
@@ -330,10 +325,12 @@ bool cop4530::HashTable<K, V>::write_to_file(const char *filename) {
     for(int i = 0; i < tableSize; i++){
         if(hashTable[i].size() < 1){
             continue;
+            //leave if hash table is empty
         }
         auto lItr = hashTable[i].begin();
         for(; lItr != hashTable[i].end(); lItr++){
             MyFile << lItr->first << " " << lItr->second << endl;
+            //adds pair to value separated by white space
         }
         cout << endl;
     }
@@ -341,9 +338,10 @@ bool cop4530::HashTable<K, V>::write_to_file(const char *filename) {
 }
 
 template<typename K, typename V>
-cop4530::HashTable<K, V>::~HashTable() {
+HashTable<K, V>::~HashTable() {
     makeEmpty();
     hashTable.clear();
+    //destructor
 }
 
 
